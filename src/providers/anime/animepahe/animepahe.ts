@@ -199,9 +199,14 @@ export class Animepahe {
     episodeSession: string,
   ): Promise<StreamResult[]> {
     try {
-      const res = await fetch(`${ANIMEPAHE_BASE_URL}/play/${animeId}/${episodeSession}`, {
-        headers: this.headers(),
-      });
+      const [animeData, res] = await Promise.all([
+        this.getMappingsAndName(animeId).catch(() => null),
+        fetch(`${ANIMEPAHE_BASE_URL}/play/${animeId}/${episodeSession}`, {
+          headers: this.headers(),
+        })
+      ]);
+
+      const animeTitle = animeData?.name || "Anime";
       const html = await res.text();
       const $ = cheerio.load(html);
 
@@ -209,12 +214,16 @@ export class Animepahe {
       const downloadLinks = $("div#pickDownload > a").toArray();
       const results: StreamResult[] = [];
 
-
       const corsHeaders = {
         // "Origin": "https://animepahe.si",
         "Referer": "https://kwik.cx/",
         // "User-Agent": USER_AGENT,
       }
+
+      // Try to find the episode number for the filename
+      const episodes = await this.fetchAllEpisodes(animeId).catch(() => []);
+      const episode = episodes.find(ep => ep.session === episodeSession);
+      const epNum = episode?.episode || "X";
 
       for (let i = 0; i < buttons.length; i++) {
         const btn = $(buttons[i]);
@@ -227,6 +236,15 @@ export class Animepahe {
           const directUrl = await this.extractDirectUrl(kwikLink, paheWinLink);
           if (!directUrl) continue;
 
+          // Generate direct download URL (no tpahe) with filename
+          const downloadUrl = this.generateDownloadUrl(
+            directUrl,
+            animeTitle,
+            epNum,
+            audio,
+            quality
+          ) || paheWinLink || null;
+
           const result = {
             id: `${animeId}--${quality}--${audio}`,
             title: `${audio} / ${quality}p`,
@@ -235,7 +253,7 @@ export class Animepahe {
             proxiedUrl: proxifySource(directUrl, corsHeaders),
             quality,
             audio,
-            downloadUrl: paheWinLink || null,
+            downloadUrl,
             corsHeaders
           }
 
@@ -564,6 +582,58 @@ export class Animepahe {
         }
       }
       return null;
+    }
+  }
+
+  private static generateDownloadUrl(
+    directUrl: string,
+    animeTitle: string,
+    episode: string | number,
+    audio: string,
+    quality: string
+  ): string | null {
+    const mp4Base = this.getMp4Url(directUrl);
+    if (!mp4Base) return null;
+
+    const safeTitle = animeTitle.replace(/[^a-z0-9]/gi, "_").replace(/_+/g, "_");
+    const epStr = String(episode);
+    const audioStr = audio === "eng" ? "Dub" : "Sub";
+
+    // Format: Title_-_Audio_-_Qualityp_-_Episode_X.mp4
+    const filename = `${safeTitle}_-_${audioStr}_-_${quality}p_-_Episode_${epStr}.mp4`;
+    return `${mp4Base}?file=${filename}`;
+  }
+
+  private static getMp4Url(m3u8Url: string): string | null {
+    if (!m3u8Url || !m3u8Url.includes("/stream/")) return null;
+
+    try {
+      const urlObj = new URL(m3u8Url);
+      const kwikDomain = "kwik.cx";
+
+      const hostParts = urlObj.hostname.split(".");
+      if (hostParts[0]?.startsWith("vault-")) {
+        urlObj.hostname = `${hostParts[0]}.${kwikDomain}`;
+      } else {
+        urlObj.hostname = kwikDomain;
+      }
+
+      urlObj.pathname = urlObj.pathname.replace("/stream/", "/mp4/");
+
+      if (urlObj.pathname.endsWith("/uwu.m3u8")) {
+        urlObj.pathname = urlObj.pathname.replace("/uwu.m3u8", "");
+      } else if (urlObj.pathname.endsWith(".m3u8")) {
+        urlObj.pathname = urlObj.pathname.replace(".m3u8", "");
+      }
+
+      return urlObj.toString();
+    } catch (e) {
+      // Fallback for simple replacement if URL object fails
+      return m3u8Url
+        .replace(".uwucdn.top", ".kwik.cx")
+        .replace("/stream/", "/mp4/")
+        .replace("/uwu.m3u8", "")
+        .replace(".m3u8", "");
     }
   }
 }
