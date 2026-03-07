@@ -14,6 +14,7 @@ import { Logger } from "./core/logger";
 import { mappingRoutes } from "./core/mappingRoutes";
 import { proxyRoutes } from "./core/proxyRoutes";
 import { animeRoutes } from "./providers/anime/route";
+import { yFlixRoutes } from "./providers/yflix/route";
 
 validateConfig();
 
@@ -38,11 +39,12 @@ app
       status: "operational"
     };
   })
-  .use(animeRoutes)
   .use(proxyRoutes)
   .use(mappingRoutes)
-  .use(proxyRoutes)
+  .use(animeRoutes)
+  .use(yFlixRoutes)
 
+  
 app.listen(PORT);
 
 Logger.info(
