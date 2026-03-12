@@ -1,7 +1,9 @@
 import { animepaheProvider } from "./animepahe/route";
+import { animekaiProvider } from "./animekai/route";
 
 export const animeProviderRegistry = {
   animepahe: animepaheProvider,
+  animekai: animekaiProvider,
 } as const;
 
 export type AnimeProviderName = keyof typeof animeProviderRegistry;

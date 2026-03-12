@@ -2,6 +2,7 @@ import Elysia from "elysia";
 import { parseId, resolveId, getBestTitle } from "../../core/idResolver";
 import { getAnimeProvider, isValidAnimeProvider, SUPPORTED_ANIME_PROVIDERS } from "./registry";
 import { resolveToProviderNativeId } from "./common/resolver";
+import { AnimeKai } from "./animekai/animekai";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +30,23 @@ const animeRoutes = new Elysia({ prefix: "/anime" })
       "GET /anime/:id/:provider/episode/:ep → streams for episode from provider",
       "GET /anime/search/:query           → search (query param: provider)",
       "GET /anime/latest                  → latest releases with all mappings (query param: provider)",
+      // AnimeKai-specific
+      "GET /anime/animekai/search/:query            → paginated search",
+      "GET /anime/animekai/spotlight                → spotlight anime",
+      "GET /anime/animekai/schedule                 → airing schedule (?date=YYYY-MM-DD)",
+      "GET /anime/animekai/suggestions/:query       → search suggestions",
+      "GET /anime/animekai/recent-episodes          → recently updated (?page=N)",
+      "GET /anime/animekai/recent-added             → recently added (?page=N)",
+      "GET /anime/animekai/completed                → latest completed (?page=N)",
+      "GET /anime/animekai/new-releases             → new releases (?page=N)",
+      "GET /anime/animekai/movies                   → movies (?page=N)",
+      "GET /anime/animekai/tv                       → TV series (?page=N)",
+      "GET /anime/animekai/ova                      → OVA (?page=N)",
+      "GET /anime/animekai/ona                      → ONA (?page=N)",
+      "GET /anime/animekai/specials                 → specials (?page=N)",
+      "GET /anime/animekai/genres                   → genre list",
+      "GET /anime/animekai/genre/:genre             → anime by genre (?page=N)",
+      "GET /anime/animekai/servers/:episodeId       → episode servers (?dub=true)",
     ],
   }), {
     detail: { tags: ['anime'], summary: 'API Overview & Supported Providers' }
@@ -276,6 +294,136 @@ const animeRoutes = new Elysia({ prefix: "/anime" })
     };
   }, {
     detail: { tags: ['anime'], summary: 'Get Streaming Links for Episode' }
-  });
+  })
+  
+  // ─── AnimeKai Specific Endpoints ──────────────────────────────────────────────
+  .group("/animekai", (app) =>
+    app
+      // Search
+      .get("/search/:query", async ({ params: { query }, query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.search(query, page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Search AnimeKai by Title (paginated)' }
+      })
+
+      // Spotlight
+      .get("/spotlight", async () => {
+        return { results: await AnimeKai.spotlight() };
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Spotlight Anime' }
+      })
+
+      // Schedule
+      .get("/schedule", async ({ query: qs }) => {
+        return { results: await AnimeKai.schedule(qs?.date as string) };
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Airing Schedule (?date=YYYY-MM-DD)' }
+      })
+
+      // Search Suggestions
+      .get("/suggestions/:query", async ({ params: { query } }) => {
+        return { results: await AnimeKai.suggestions(query) };
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Search Suggestions' }
+      })
+
+      // Recent Episodes (recently updated)
+      .get("/recent-episodes", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.recentlyUpdated(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Recently Updated Anime (paginated)' }
+      })
+
+      // Recently Added
+      .get("/recent-added", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.recentlyAdded(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Recently Added Anime (paginated)' }
+      })
+
+      // Latest Completed
+      .get("/completed", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.latestCompleted(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Latest Completed Anime (paginated)' }
+      })
+
+      // New Releases
+      .get("/new-releases", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.newReleases(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get New Anime Releases (paginated)' }
+      })
+
+      // Movies
+      .get("/movies", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.movies(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Anime Movies (paginated)' }
+      })
+
+      // TV
+      .get("/tv", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.tv(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get TV Series (paginated)' }
+      })
+
+      // OVA
+      .get("/ova", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.ova(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get OVA Anime (paginated)' }
+      })
+
+      // ONA
+      .get("/ona", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.ona(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get ONA Anime (paginated)' }
+      })
+
+      // Specials
+      .get("/specials", async ({ query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.specials(page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Special Anime (paginated)' }
+      })
+
+      // Genre List
+      .get("/genres", async () => {
+        return { results: await AnimeKai.genres() };
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Genre List' }
+      })
+
+      // By Genre
+      .get("/genre/:genre", async ({ params: { genre }, query: qs }) => {
+        const page = parseInt(qs?.page as string) || 1;
+        return await AnimeKai.genreSearch(genre, page);
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Anime by Genre (paginated)' }
+      })
+
+      // Episode Servers
+      .get("/servers/:episodeId", async ({ params: { episodeId }, query: qs }) => {
+        const dubParam = qs?.dub;
+        const subOrDub: "softsub" | "dub" =
+          dubParam === "true" || dubParam === "1" ? "dub" : "softsub";
+        return { servers: await AnimeKai.fetchEpisodeServers(episodeId, subOrDub) };
+      }, {
+        detail: { tags: ['animekai'], summary: 'Get Episode Servers (?dub=true for dub servers)' }
+      })
+  );
 
 export { animeRoutes };
