@@ -92,7 +92,7 @@ export class Primesrc {
                     continue;
                 }
 
-                Bun.write("./logs/"+Date.now(), text);
+                // Bun.write("./logs/"+Date.now(), text);
 
                 const { link } = JSON.parse(text);
                 if (!link) {

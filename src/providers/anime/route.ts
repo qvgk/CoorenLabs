@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
-import { animepaheRoutes } from "./animepahe/route";
 import { animekaiRoutes } from "./animekai/route";
+import { animepaheRoutes } from "./animepahe/route";
 import { toonstreamRoutes } from "./toonstream/route";
 
 export const animeRoutes = new Elysia({ prefix: "/anime" })
@@ -37,7 +37,7 @@ export const animeRoutes = new Elysia({ prefix: "/anime" })
         "GET /anime/animekai/specials               → Browse specials",
         "GET /anime/animekai/genres                 → List all genres",
         "GET /anime/animekai/genre/:genre           → Search by genre",
-        "GET /anime/animekai/info?id=               → Full anime info + episodes",
+        "GET /anime/animekai/info/:id               → Full anime info + episodes",
         "GET /anime/animekai/watch/:episodeId       → Stream sources (query: dub)",
         "GET /anime/animekai/servers/:episodeId     → Episode servers (query: dub)",
       ],

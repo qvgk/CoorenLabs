@@ -90,8 +90,7 @@ export const animekaiRoutes = new Elysia({ prefix: "/animekai" })
   })
 
   // ─── Anime Info ────────────────────────────────────────────────────────────
-  .get("/info", async ({ query: qs, set }) => {
-    const id = qs?.id as string | undefined;
+  .get("/info/:id?", async ({ params: { id }, set }) => {
     if (!id) {
       set.status = 400;
       return { message: "id is required" };
