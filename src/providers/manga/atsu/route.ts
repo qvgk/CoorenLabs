@@ -16,6 +16,15 @@ const DEFAULT_TYPES = "Manga,Manwha,Manhua,OEL";
 
 export const atsuRoutes = new Elysia({ prefix: "/atsu" })
   
+// ─── Provider Info Endpoint ───
+  .get("/", () => {
+    return {
+      provider: "Atsu",
+      status: "operational",
+      description: "Atsu is a sleek online manga reading platform that offers a wide variety of manga, manhwa, and manhua titles across different genres. It provides users with an extensive, high-quality library, including both classic and contemporary titles, along with features like personalized recommendations, trending sections, and a user-friendly interface for discovering and reading comics online.",
+      message: "Atsu provider is running. Visit /docs for available endpoints."
+    };
+  })
   // ─── Standard (Non-Adult) Endpoints ───
   .get("/home", async ({ request, set }) => {
     const data = await atsu.parseHome(getBaseUrl(request), false);
