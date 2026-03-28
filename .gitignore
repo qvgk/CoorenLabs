@@ -62,6 +62,11 @@ coverage/
 tmp/
 
 old
-tests
+# tests (unignored for mock infrastructure)
+# tests
+
 logs
 *.zip
+package-lock.json
+bun.lockb
+deno.lock

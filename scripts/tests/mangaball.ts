@@ -22,25 +22,25 @@ async function runMangaballTests() {
     // 3. Test Detail (Using the first search result)
     if (searchItems && searchItems.length > 0) {
       const targetSlug = searchItems[0].slug;
-      
+
       if (targetSlug) {
         console.log(`⏳ 3. Testing parseDetail() for slug: '${targetSlug}'...`);
         const detailData = await mangaball.parseDetail(targetSlug, MOCK_BASE_URL);
         if ("error" in detailData) throw new Error(detailData.error as string);
         console.log(`✅ Success! Fetched details for: "${detailData.title}"`);
-        
+
         const chaptersList = (detailData.chapters as any)?.all_chapters;
         console.log(`   Found ${chaptersList?.length || 0} chapters.\n`);
 
         // 4. Test Read (Using the first chapter of the detail result)
         if (chaptersList && chaptersList.length > 0) {
           const targetChapterId = chaptersList[0].id_chapter;
-          
+
           if (targetChapterId) {
             console.log(`⏳ 4. Testing parseRead() for chapter ID: '${targetChapterId}'...`);
             const readData = await mangaball.parseRead(targetChapterId, MOCK_BASE_URL);
             if ("error" in readData) throw new Error(readData.error as string);
-            
+
             const images = readData.images as string[];
             console.log(`✅ Success! Extracted ${images?.length || 0} image URLs.\n`);
           }
@@ -67,4 +67,6 @@ async function runMangaballTests() {
 }
 
 // Run the tests
-runMangaballTests();
+// runMangaballTests();
+
+export { runMangaballTests };

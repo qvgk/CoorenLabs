@@ -2,29 +2,38 @@
 // accept all incomings for this file, if coming from @binrot
 
 import { Redis } from "@upstash/redis";
-import { RedisClient } from "bun";
+import { env, isBun } from "./runtime";
 import { Logger } from "./logger";
+
+// We can't import RedisClient from "bun" in non-Bun runtimes.
+let RedisClientValue: any;
+if (isBun) {
+    // @ts-ignore
+    import("bun").then(m => RedisClientValue = m.RedisClient);
+}
 
 
 const cacheProviders = ["default", "uptash"]
 
-const ENABLE_CACHE = Bun.env.ENABLE_CACHE;
-const DEFAULT_CACHE_TTL = +(Bun.env.DEFAULT_CACHE_TTL || -1);
-const CACHE_PROVIDER = Bun.env.CACHE_PROVIDER;
+const ENABLE_CACHE = env.ENABLE_CACHE;
+const DEFAULT_CACHE_TTL = +(env.DEFAULT_CACHE_TTL || -1);
+const CACHE_PROVIDER = env.CACHE_PROVIDER;
 
-if (
-    // ENABLE_CACHE && // dont check if cache is disabled
-    isNaN(DEFAULT_CACHE_TTL)
-) throw new Error("Invalid `DEFAULT_CACHE_TTL` value " + Bun.env.DEFAULT_CACHE_TTL)
+if (isNaN(DEFAULT_CACHE_TTL)) {
+    throw new Error("Invalid `DEFAULT_CACHE_TTL` value " + env.DEFAULT_CACHE_TTL);
+}
+
+if (ENABLE_CACHE === "true" && (!CACHE_PROVIDER || !cacheProviders.includes(CACHE_PROVIDER as any))) {
+    throw new Error("Invalid `CACHE_PROVIDER` value " + CACHE_PROVIDER);
+}
 
 
-if (!CACHE_PROVIDER || !cacheProviders.includes(CACHE_PROVIDER)) throw new Error("Invalid `CACHE_PROVIDER` value " + CACHE_PROVIDER)
 
-const REDIS_URL = Bun.env.REDIS_URL;
-const UPSTASH_REDIS_REST_URL = Bun.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_REDIS_REST_TOKEN = Bun.env.UPSTASH_REDIS_REST_TOKEN;
+const REDIS_URL = env.REDIS_URL;
+const UPSTASH_REDIS_REST_URL = env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_REDIS_REST_TOKEN = env.UPSTASH_REDIS_REST_TOKEN;
 
-let redis: Redis | RedisClient | undefined;
+let redis: Redis | any | undefined;
 
 // cache disabled
 if (ENABLE_CACHE !== "true") {
@@ -33,10 +42,22 @@ if (ENABLE_CACHE !== "true") {
 
 // default
 else if (CACHE_PROVIDER == "default") {
-    if (!REDIS_URL) throw new Error("`REDIS_URL` is required to use redis cache!");
+    if (!isBun) {
+        Logger.warn("[Cache] Native Bun RedisClient is only available in Bun. Falling back to no cache for 'default' provider.");
+    } else {
+        if (!REDIS_URL) throw new Error("`REDIS_URL` is required to use redis cache!");
 
-    redis = new RedisClient(REDIS_URL, { autoReconnect: true, connectionTimeout: 10_000, maxRetries: 3 })
-    Logger.info("[Cache]  Redis (default) successfully initailized, now serving with cache!");
+        // Use dynamic import or handle via variable
+        // Since we already checked isBun, we can assume it's available.
+        // @ts-ignore
+        import("bun").then(({ RedisClient }) => {
+            redis = new RedisClient(REDIS_URL, { autoReconnect: true, connectionTimeout: 10_000, maxRetries: 3 });
+            Logger.info("[Cache]  Redis (default) successfully initialized, now serving with cache!");
+        }).catch(err => {
+            Logger.error("[Cache] Failed to initialize Bun RedisClient:", err);
+        });
+
+    }
 }
 
 // uptash
@@ -51,6 +72,7 @@ else {
     });
     Logger.info("[Cache] Uptash Redis successfully initailized, now serving with cache!");
 }
+
 
 
 export class Cache {
@@ -72,7 +94,8 @@ export class Cache {
             } else {
                 // store for TTL seconds
                 if (CACHE_PROVIDER === "default") {
-                    await (redis as RedisClient).set(key, value, "EX", TTL);
+                    await (redis as any).set(key, value, "EX", TTL);
+
                 } else {
                     await redis.set(key, value, { ex: TTL });
                 }
@@ -143,8 +166,9 @@ export class Cache {
                 let keys: string[];
 
                 if (CACHE_PROVIDER === "default") {
-                    [nextCursor, keys] = await (redis as RedisClient).scan(cursor, "MATCH", `${prefix}*`);
+                    [nextCursor, keys] = await (redis as any).scan(cursor, "MATCH", `${prefix}*`);
                 } else {
+
                     [nextCursor, keys] = await (redis as Redis).scan(cursor, { match: `${prefix}*` });
                 }
 
@@ -174,8 +198,9 @@ export class Cache {
             let count = 0;
 
             if (CACHE_PROVIDER === "default") {
-                count = await (redis as RedisClient).send("DBSIZE", []);
-                await (redis as RedisClient).send("FLUSHDB", []);
+                count = await (redis as any).send("DBSIZE", []);
+                await (redis as any).send("FLUSHDB", []);
+
             } else {
                 count = await (redis as Redis).dbsize();
                 await (redis as Redis).flushdb();

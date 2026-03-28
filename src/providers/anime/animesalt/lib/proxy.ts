@@ -1,5 +1,6 @@
 import { SERVER_ORIGIN } from "../route";
-import { DirectSource } from "./types";
+import { DirectSource } from "../types";
+
 
 const prefix = "/anime/animesalt"
 

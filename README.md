@@ -1,9 +1,12 @@
 # Cooren API
 
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh)
+[![Node.js](https://img.shields.io/badge/Node.js-339933.svg?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Deno](https://img.shields.io/badge/Deno-000000.svg?style=for-the-badge&logo=deno&logoColor=white)](https://deno.land)
 [![ElysiaJS](https://img.shields.io/badge/ElysiaJS-%23FEEB00.svg?style=for-the-badge&logo=elysiajs&logoColor=black)](https://elysiajs.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](LICENSE)
+
 
 Cooren is an open-source, high-performance, and scalable scraping engine designed to collect, organize, and deliver structured data from across the world of anime, movies, manga, and music.
 
@@ -21,11 +24,12 @@ Developed and maintained by [CoorenLabs](https://coorenlabs.com).
 
 ## Features
 
+- **Multi-Runtime Compliance**: Full support for Bun, Node.js, and Deno.
 - **Unified Media Ecosystem**: Anime, Manga, Movies, TV, and Music.
-- **Open Source**: Fully community-driven.
-- **High Performance**: Powered by Bun and ElysiaJS.
-- **Advanced Scraping**: Cheerio, Puppeteer, and Axios.
-- **Developer Friendly**: TypeScript and modular architecture.
+- **High Performance**: Native speed powered by Bun and ElysiaJS.
+- **Mock-Based Testing**: Comprehensive dual-framework (Vitest/Jest) integration tests.
+- **Developer Friendly**: TypeScript and modular, test-ready architecture.
+
 
 ---
 
@@ -65,16 +69,6 @@ bun run dev      # or bun run hot
 ```bash
 bun run build:bun   # Optimized for Bun
 bun run build:node  # Compile to Node
-```
-
----
-
-## Project Structure
-
-```
-src/
-├── core/         # Config, logger, routes
-├── providers/    # Individual media providers
 ```
 
 ---

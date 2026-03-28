@@ -3,10 +3,13 @@ import { AnimeSalt } from "./animesalt";
 import { isTooLarge } from "../../../core/helper";
 import { Logger } from "../../../core/logger";
 
-export const SERVER_ORIGIN = Bun.env.SERVER_ORIGIN || "";
-export const PROXIFY = Boolean(Bun.env.PROXIFY) || false;
+import { env } from "../../../core/runtime";
+
+export const SERVER_ORIGIN = env.SERVER_ORIGIN || "";
+export const PROXIFY = Boolean(env.PROXIFY) || false;
 
 if (!SERVER_ORIGIN) throw new Error("set SERVER_ORIGIN at .env!");
+
 
 Logger.info("auto source proxy is ", PROXIFY);
 

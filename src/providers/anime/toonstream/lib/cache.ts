@@ -1,19 +1,37 @@
-import { RedisClient } from "bun";
+import { env, isBun } from "../../../../core/runtime";
 
-const redisUrl = Bun.env.REDIS_URL || undefined;
-const cacheEnabled = process.env.ENABLE_CACHE && process.env.ENABLE_CACHE == "true"
+const redisUrl = env.REDIS_URL || undefined;
+const cacheEnabled = env.ENABLE_CACHE && env.ENABLE_CACHE == "true"
 
-let redis: RedisClient | null = null;
+let RedisClientValue: any;
+if (isBun) {
+    // @ts-ignore
+    import("bun").then(m => RedisClientValue = m.RedisClient);
+}
+
+let redis: any | null = null;
 
 if (!cacheEnabled) {
     console.log("[Cache] Caching is disabled! serving without cache.");
 } else {
     console.log("[Cache] Caching is enabled! serving with cache.");
 
-    redis = new RedisClient(redisUrl, {
-        maxRetries: 3
-    });
+    if (isBun) {
+        // @ts-ignore
+        import("bun").then(({ RedisClient }) => {
+            redis = new RedisClient(redisUrl, {
+                maxRetries: 3
+            });
+            console.log("[Cache] Redis (Bun) initialized successfully.");
+        }).catch(err => {
+            console.error("[Cache] Failed to initialize Bun RedisClient:", err);
+        });
+    } else {
+        console.warn("[Cache] Native Bun RedisClient is only available in Bun. Falling back to no cache.");
+    }
 }
+
+
 
 export { redis };
 

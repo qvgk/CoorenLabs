@@ -11,7 +11,8 @@ const MAX_MP4_SIZE = 20 * 1024 * 1024 * 1024; // 20 GB
 
 const PLAYLIST_REGEX = /\.m3u|playlist|\.txt/i
 
-if (!SERVER_ORIGIN) throw new Error("set SERVER_ORIGIN at .env!");
+if (!SERVER_ORIGIN && process.env.NODE_ENV !== "test") throw new Error("set SERVER_ORIGIN at .env!");
+
 
 export const proxyRoutes = new Elysia({ prefix: "/proxy" })
 
@@ -26,9 +27,9 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
       ]
     }
   }, {
-    detail: { 
-      tags: ['proxy'], 
-      summary: 'Proxy API Overview' 
+    detail: {
+      tags: ['proxy'],
+      summary: 'Proxy API Overview'
     }
   })
 
@@ -110,9 +111,9 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
       url: t.String(),
       headers: t.Optional(t.String())
     }),
-    detail: { 
-      tags: ['proxy'], 
-      summary: 'M3U8 Playlist Proxy' 
+    detail: {
+      tags: ['proxy'],
+      summary: 'M3U8 Playlist Proxy'
     }
   })
 
@@ -163,9 +164,9 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
       url: t.String(),
       headers: t.Optional(t.String())
     }),
-    detail: { 
-      tags: ['proxy'], 
-      summary: 'TS Segment Proxy' 
+    detail: {
+      tags: ['proxy'],
+      summary: 'TS Segment Proxy'
     }
   })
 
@@ -224,9 +225,9 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
       url: t.String(),
       headers: t.Optional(t.String()),
     }),
-    detail: { 
-      tags: ['proxy'], 
-      summary: 'MP4 Video Proxy' 
+    detail: {
+      tags: ['proxy'],
+      summary: 'MP4 Video Proxy'
     }
   })
 
@@ -268,8 +269,8 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
       url: t.String(),
       headers: t.Optional(t.String())
     }),
-    detail: { 
-      tags: ['proxy'], 
-      summary: 'General Media Fetch Proxy' 
+    detail: {
+      tags: ['proxy'],
+      summary: 'General Media Fetch Proxy'
     }
   });

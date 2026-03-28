@@ -19,18 +19,21 @@ const SERIES_INFO_CACHE_TTL = 3600 * 24 * 3 // 3 days
 
 
 
-export const SERVER_ORIGIN = Bun.env.SERVER_ORIGIN || "";
-export const PROXIFY = Boolean(Bun.env.PROXIFY) || false;
+import { env } from "../../../core/runtime";
+
+export const SERVER_ORIGIN = env.SERVER_ORIGIN || "";
+export const PROXIFY = Boolean(env.PROXIFY) || false;
 
 if (!SERVER_ORIGIN) throw new Error("set SERVER_ORIGIN at .env!");
 
 console.log("auto source proxy is ", PROXIFY);
 
-const envOrigins = Bun.env.ALLOWED_ORIGINS;
+const envOrigins = env.ALLOWED_ORIGINS;
 
 const ALLOWED_ORIGINS: string[] | "*" = envOrigins
   ? envOrigins.split(",").map((o: string) => o.trim().replace(/\/$/, ""))
   : "*";
+
 
 
 // for proxy safety
